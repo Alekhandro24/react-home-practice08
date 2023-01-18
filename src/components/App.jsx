@@ -1,16 +1,41 @@
-export const App = () => {
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchContacts } from 'redux/operations';
+import { selectContacts, selectIsLoading, selectError } from 'redux/selectors';
+import { Layout } from './Layout';
+import { GlobalStyle } from './GlobalStyle';
+import ContactForm from 'components/ContactForm/ContactForm';
+import Filter from 'components/Filter/Filter';
+import ContactList from 'components/ContactList/ContactList';
+import Notification from './Notification/Notification';
+
+const App = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101',
-      }}
-    >
-      React homework template, hi
-    </div>
+    <Layout>
+      <h1>Phonebook</h1>
+      <ContactForm />
+
+      {isLoading && !error && <Notification message="Request in progress..." />}
+
+      {contacts.length > 0 && (
+        <>
+          <h2> Contacts</h2>
+          <Filter />
+          <ContactList />
+        </>
+      )}
+      <GlobalStyle />
+    </Layout>
   );
 };
+
+export default App;
