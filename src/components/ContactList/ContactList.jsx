@@ -1,38 +1,33 @@
-import { useSelector } from 'react-redux';
-import { selectNameFilter, selectVisibleContacts } from 'redux/selectors';
-import ContactListItem from 'components/ContactListItem/ContactListItem';
-import { ListItem } from 'components/ContactListItem/ContactListItem.styled';
-import { ContactListUl } from 'components/ContactList/ContactList.styled';
-import Notification from 'components/Notification/Notification';
 import PropTypes from 'prop-types';
+import { ContactItem } from 'components/ContactItem/ContactItem';
+import { List } from '@mui/material';
 
-const ContactList = () => {
-  const contacts = useSelector(selectVisibleContacts);
-  const nameFilter = useSelector(selectNameFilter);
-  const notificationMessage = contacts.length === 0 && nameFilter;
-
+export const ContactList = ({ contacts }) => {
   return (
-    <>
-      {notificationMessage && <Notification message="There is no contacts" />}
-
-      <ContactListUl>
-        {contacts.map(contact => (
-          <ListItem key={contact.id}>
-            <ContactListItem {...contact} />
-          </ListItem>
-        ))}
-      </ContactListUl>
-    </>
+    <List sx={{ width: 1 }}>
+      {contacts.map(contact => (
+        <ContactItem key={contact.id} {...contact} />
+      ))}
+    </List>
   );
 };
-
-export default ContactList;
-
 ContactList.propTypes = {
   contacts: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      number: PropTypes.string.isRequired,
     })
   ),
-  filter: PropTypes.string,
 };
+
+// export default ContactList;
+
+// ContactList.propTypes = {
+//   contacts: PropTypes.arrayOf(
+//     PropTypes.shape({
+//       id: PropTypes.string.isRequired,
+//     })
+//   ),
+//   filter: PropTypes.string,
+// };

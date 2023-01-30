@@ -1,72 +1,89 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { selectContacts } from 'redux/selectors';
-import { addContact } from 'redux/operations';
-import {
-  Form,
-  FormName,
-  FormNumber,
-  FormBtn,
-} from 'components/ContactForm/ContactForm.styled';
-import PropTypes from 'prop-types';
+import * as yup from 'yup';
+import { useFormik } from 'formik';
 
-const ContactForm = () => {
-  const contacts = useSelector(selectContacts);
+import Button from '@mui/material/Button';
+import { Box, TextField } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { contactsOperations } from 'redux/contacts';
+
+const schema = yup.object().shape({
+  name: yup
+    .string()
+    .matches(
+      /^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$/,
+      "Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+    )
+    .required('Name is required'),
+  number: yup
+    .string()
+    .matches(
+      /\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/,
+      'Phone number must be digits and can contain spaces, dashes, parentheses and can start with +'
+    )
+    .required('Number is required')
+    .min(5, 'Number should be of minimum 7 characters length'),
+});
+
+const initialValues = {
+  name: '',
+  number: '',
+};
+
+export const ContactForm = () => {
   const dispatch = useDispatch();
 
-  const nameIsInContacts = newName =>
-    contacts.some(({ name }) => name.toLowerCase() === newName.toLowerCase());
-
-  const handleFormSubmit = e => {
-    e.preventDefault();
-    const form = e.target;
-    const name = form.name.value;
-    const number = form.number.value;
-
-    const isInContacts = nameIsInContacts(name);
-
-    if (isInContacts) {
-      alert(`"${name} exist in contact list"`);
-      form.reset();
-      return;
-    }
-
-    dispatch(addContact({ name, number }));
-    form.reset();
+  const handleSubmit = (values, { resetForm }) => {
+    console.log(values);
+    dispatch(contactsOperations.add(values));
+    resetForm();
   };
 
+  const formik = useFormik({
+    initialValues: initialValues,
+    validationSchema: schema,
+    onSubmit: handleSubmit,
+  });
+
   return (
-    <Form onSubmit={handleFormSubmit}>
-      <label>Name </label>
-      <FormName
-        type="text"
+    <Box
+      component="form"
+      onSubmit={formik.handleSubmit}
+      sx={{
+        mt: 1,
+        textAlign: 'center',
+      }}
+    >
+      <TextField
+        margin="normal"
+        fullWidth
+        size="small"
+        id="name"
+        label="Name"
         name="name"
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-        required
-        placeholder="Enter name"
+        value={formik.values.name}
+        onChange={formik.handleChange}
+        error={formik.touched.name && Boolean(formik.errors.name)}
+        helperText={formik.touched.name && formik.errors.name}
+        autoComplete="name"
+        autoFocus
       />
-      <label>Number </label>
-      <FormNumber
-        type="tel"
+      <TextField
+        margin="normal"
+        fullWidth
+        size="small"
         name="number"
-        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-        title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-        required
-        placeholder="Enter phone number"
+        label="Number"
+        type="number"
+        id="number"
+        value={formik.values.number}
+        onChange={formik.handleChange}
+        error={formik.touched.number && Boolean(formik.errors.number)}
+        helperText={formik.touched.number && formik.errors.number}
+        autoComplete="current-number"
       />
-      <FormBtn type="submit">Add contact</FormBtn>
-    </Form>
+      <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2, px: 3 }}>
+        + Add contact
+      </Button>
+    </Box>
   );
 };
-
-ContactForm.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ),
-};
-
-export default ContactForm;
